@@ -1,17 +1,17 @@
 return {
-  name = "template install local",
+  name = "homebrew install local unsupported",
   request = {
     action = "install",
-    system = "template",
-    localPath = "/tmp/delta.tgz",
+    system = "homebrew",
+    localPath = "/tmp/homebrew.rb",
   },
   fakeExec = {},
   expect = {
-    success = true,
-    events = { "installed", "success" },
+    success = false,
+    events = { "failed", "unavailable" },
     eventPayloads = {
-      installed = "{localTarget=true, path=/tmp/delta.tgz}",
-      success = "ok",
+      failed = "homebrew local installs are not supported",
+      unavailable = "{path=/tmp/homebrew.rb, reason=local-install-unsupported}",
     },
   }
 }

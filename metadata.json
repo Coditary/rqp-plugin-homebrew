@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
-  "name": "template",
-  "version": "0.1.0",
-  "summary": "Template wrapper plugin",
-  "description": "ReqPack wrapper template bundle",
+  "name": "homebrew",
+  "version": "0.2.0",
+  "summary": "ReqPack wrapper for Homebrew",
+  "description": "ReqPack Lua wrapper plugin for Homebrew formulae and casks on macOS and Linux",
   "license": "MIT"
 }
