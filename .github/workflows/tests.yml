@@ -77,29 +77,23 @@ jobs:
 
       - name: Run real Linux smoke test
         run: |
-          tmp_dir="$(mktemp -d)"
-          trap 'rm -rf "$tmp_dir"' EXIT INT TERM HUP
-          plugin_dir="$tmp_dir/plugins/homebrew"
-          mkdir -p "$plugin_dir/scripts"
-          cp metadata.json "$plugin_dir/metadata.json"
-          cp reqpack.lua "$plugin_dir/reqpack.lua"
-          cp run.lua "$plugin_dir/run.lua"
-          cp scripts/install.lua "$plugin_dir/scripts/install.lua"
-          cp scripts/remove.lua "$plugin_dir/scripts/remove.lua"
-
-          curl -fsSL \
-            "https://github.com/Coditary/ReqPack/releases/download/${REQPACK_RUNTIME_TAG}/rqp-${REQPACK_RUNTIME_TAG}-${{ matrix.target }}.tar.gz" \
-            -o "$tmp_dir/rqp.tar.gz"
-          mkdir -p "$tmp_dir/runtime"
-          tar -xzf "$tmp_dir/rqp.tar.gz" -C "$tmp_dir/runtime"
-
           brew_bin="/home/linuxbrew/.linuxbrew/bin/brew"
           test -x "$brew_bin"
           eval "$("$brew_bin" shellenv)"
           command -v brew >/dev/null
-          "$tmp_dir/runtime/rqp" search homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
-          "$tmp_dir/runtime/rqp" info homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
-          "$tmp_dir/runtime/rqp" list homebrew --registry "$tmp_dir" --non-interactive >/dev/null
+          brew info --json=v2 wget >/dev/null
+          uid="$(id -u)"
+          gid="$(id -g)"
+          podman run --rm \
+            --user "$uid:$gid" \
+            -e PATH="$PATH" \
+            -e HOME="$HOME" \
+            -v "/home/linuxbrew/.linuxbrew:/home/linuxbrew/.linuxbrew" \
+            -v "$HOME:$HOME" \
+            -v "${{ github.workspace }}:/workspace" \
+            --entrypoint /bin/sh \
+            "ghcr.io/coditary/reqpack:${REQPACK_RUNTIME_TAG}" \
+            -lc 'rqp test-plugin --plugin /workspace/run.lua --case /workspace/.reqpack-test/smoke/search-real.lua --case /workspace/.reqpack-test/smoke/info-real.lua --case /workspace/.reqpack-test/smoke/list-real.lua'
 
   system-tests-macos:
     name: aarch64-darwin
@@ -148,17 +142,9 @@ jobs:
 
       - name: Run real macOS smoke test
         run: |
-          tmp_dir="$(mktemp -d)"
-          trap 'rm -rf "$tmp_dir"' EXIT INT TERM HUP
-          plugin_dir="$tmp_dir/plugins/homebrew"
-          mkdir -p "$plugin_dir/scripts"
-          cp metadata.json "$plugin_dir/metadata.json"
-          cp reqpack.lua "$plugin_dir/reqpack.lua"
-          cp run.lua "$plugin_dir/run.lua"
-          cp scripts/install.lua "$plugin_dir/scripts/install.lua"
-          cp scripts/remove.lua "$plugin_dir/scripts/remove.lua"
-
           command -v brew >/dev/null
-          ./runtime/rqp search homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
-          ./runtime/rqp info homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
-          ./runtime/rqp list homebrew --registry "$tmp_dir" --non-interactive >/dev/null
+          brew info --json=v2 wget >/dev/null
+          ./runtime/rqp test-plugin --plugin ./run.lua \
+            --case ./.reqpack-test/smoke/search-real.lua \
+            --case ./.reqpack-test/smoke/info-real.lua \
+            --case ./.reqpack-test/smoke/list-real.lua
