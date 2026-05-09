@@ -75,6 +75,32 @@ PY
             "ghcr.io/coditary/reqpack:${REQPACK_RUNTIME_TAG}" \
              -lc 'rqp test-plugin --plugin /fixtures/homebrew/run.lua --preset core'
 
+      - name: Run real Linux smoke test
+        run: |
+          tmp_dir="$(mktemp -d)"
+          trap 'rm -rf "$tmp_dir"' EXIT INT TERM HUP
+          plugin_dir="$tmp_dir/plugins/homebrew"
+          mkdir -p "$plugin_dir/scripts"
+          cp metadata.json "$plugin_dir/metadata.json"
+          cp reqpack.lua "$plugin_dir/reqpack.lua"
+          cp run.lua "$plugin_dir/run.lua"
+          cp scripts/install.lua "$plugin_dir/scripts/install.lua"
+          cp scripts/remove.lua "$plugin_dir/scripts/remove.lua"
+
+          curl -fsSL \
+            "https://github.com/Coditary/ReqPack/releases/download/${REQPACK_RUNTIME_TAG}/rqp-${REQPACK_RUNTIME_TAG}-${{ matrix.target }}.tar.gz" \
+            -o "$tmp_dir/rqp.tar.gz"
+          mkdir -p "$tmp_dir/runtime"
+          tar -xzf "$tmp_dir/rqp.tar.gz" -C "$tmp_dir/runtime"
+
+          brew_bin="/home/linuxbrew/.linuxbrew/bin/brew"
+          test -x "$brew_bin"
+          eval "$("$brew_bin" shellenv)"
+          command -v brew >/dev/null
+          "$tmp_dir/runtime/rqp" search homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
+          "$tmp_dir/runtime/rqp" info homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
+          "$tmp_dir/runtime/rqp" list homebrew --registry "$tmp_dir" --non-interactive >/dev/null
+
   system-tests-macos:
     name: aarch64-darwin
     runs-on: macos-14
@@ -119,3 +145,20 @@ PY
           cp scripts/remove.lua "$plugin_dir/scripts/remove.lua"
           cp -R .reqpack-test "$plugin_dir/.reqpack-test"
           ./runtime/rqp test-plugin --plugin "$plugin_dir/run.lua" --preset core
+
+      - name: Run real macOS smoke test
+        run: |
+          tmp_dir="$(mktemp -d)"
+          trap 'rm -rf "$tmp_dir"' EXIT INT TERM HUP
+          plugin_dir="$tmp_dir/plugins/homebrew"
+          mkdir -p "$plugin_dir/scripts"
+          cp metadata.json "$plugin_dir/metadata.json"
+          cp reqpack.lua "$plugin_dir/reqpack.lua"
+          cp run.lua "$plugin_dir/run.lua"
+          cp scripts/install.lua "$plugin_dir/scripts/install.lua"
+          cp scripts/remove.lua "$plugin_dir/scripts/remove.lua"
+
+          command -v brew >/dev/null
+          ./runtime/rqp search homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
+          ./runtime/rqp info homebrew wget --registry "$tmp_dir" --non-interactive >/dev/null
+          ./runtime/rqp list homebrew --registry "$tmp_dir" --non-interactive >/dev/null
