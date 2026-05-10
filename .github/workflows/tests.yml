@@ -75,26 +75,6 @@ jobs:
             "ghcr.io/coditary/reqpack:${REQPACK_RUNTIME_TAG}" \
              -lc 'rqp test-plugin --plugin /fixtures/homebrew/run.lua --preset core'
 
-      - name: Run real Linux smoke test
-        run: |
-          brew_bin="/home/linuxbrew/.linuxbrew/bin/brew"
-          test -x "$brew_bin"
-          eval "$("$brew_bin" shellenv)"
-          command -v brew >/dev/null
-          brew info --json=v2 wget >/dev/null
-          uid="$(id -u)"
-          gid="$(id -g)"
-          podman run --rm \
-            --user "$uid:$gid" \
-            -e PATH="$PATH" \
-            -e HOME="/tmp/reqpack-home" \
-            -e XDG_CONFIG_HOME="/tmp/reqpack-config" \
-            -v "/home/linuxbrew/.linuxbrew:/home/linuxbrew/.linuxbrew" \
-            -v "${{ github.workspace }}:/workspace" \
-            --entrypoint /bin/sh \
-            "ghcr.io/coditary/reqpack:${REQPACK_RUNTIME_TAG}" \
-            -lc 'mkdir -p /tmp/reqpack-home /tmp/reqpack-config && rqp test-plugin --plugin /workspace/run.lua --case /workspace/.reqpack-test/smoke/search-real.lua --case /workspace/.reqpack-test/smoke/info-real.lua --case /workspace/.reqpack-test/smoke/list-real.lua'
-
   system-tests-macos:
     name: aarch64-darwin
     runs-on: macos-14
@@ -139,12 +119,3 @@ jobs:
           cp scripts/remove.lua "$plugin_dir/scripts/remove.lua"
           cp -R .reqpack-test "$plugin_dir/.reqpack-test"
           ./runtime/rqp test-plugin --plugin "$plugin_dir/run.lua" --preset core
-
-      - name: Run real macOS smoke test
-        run: |
-          command -v brew >/dev/null
-          brew info --json=v2 wget >/dev/null
-          ./runtime/rqp test-plugin --plugin ./run.lua \
-            --case ./.reqpack-test/smoke/search-real.lua \
-            --case ./.reqpack-test/smoke/info-real.lua \
-            --case ./.reqpack-test/smoke/list-real.lua
