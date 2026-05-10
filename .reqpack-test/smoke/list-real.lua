@@ -6,5 +6,6 @@ return {
   },
   expect = {
     success = true,
+    events = { "listed" },
   }
 }

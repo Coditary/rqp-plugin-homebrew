@@ -87,13 +87,13 @@ jobs:
           podman run --rm \
             --user "$uid:$gid" \
             -e PATH="$PATH" \
-            -e HOME="$HOME" \
+            -e HOME="/tmp/reqpack-home" \
+            -e XDG_CONFIG_HOME="/tmp/reqpack-config" \
             -v "/home/linuxbrew/.linuxbrew:/home/linuxbrew/.linuxbrew" \
-            -v "$HOME:$HOME" \
             -v "${{ github.workspace }}:/workspace" \
             --entrypoint /bin/sh \
             "ghcr.io/coditary/reqpack:${REQPACK_RUNTIME_TAG}" \
-            -lc 'rqp test-plugin --plugin /workspace/run.lua --case /workspace/.reqpack-test/smoke/search-real.lua --case /workspace/.reqpack-test/smoke/info-real.lua --case /workspace/.reqpack-test/smoke/list-real.lua'
+            -lc 'mkdir -p /tmp/reqpack-home /tmp/reqpack-config && rqp test-plugin --plugin /workspace/run.lua --case /workspace/.reqpack-test/smoke/search-real.lua --case /workspace/.reqpack-test/smoke/info-real.lua --case /workspace/.reqpack-test/smoke/list-real.lua'
 
   system-tests-macos:
     name: aarch64-darwin

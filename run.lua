@@ -4,6 +4,12 @@ local PLUGIN_ID = "homebrew"
 local PLUGIN_NAME = "Homebrew"
 local PLUGIN_VERSION = "0.2.0"
 local HOMEBREW_INSTALL_URL = "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+local BREW_BINARY_CANDIDATES = {
+    "/opt/homebrew/bin/brew",
+    "/usr/local/bin/brew",
+    "/home/linuxbrew/.linuxbrew/bin/brew",
+    "brew",
+}
 local BREW_DETECT_COMMAND = "command -v brew 2>/dev/null || { [ -x /opt/homebrew/bin/brew ] && printf '%s\\n' /opt/homebrew/bin/brew; } || { [ -x /usr/local/bin/brew ] && printf '%s\\n' /usr/local/bin/brew; } || { [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && printf '%s\\n' /home/linuxbrew/.linuxbrew/bin/brew; }"
 local BREW_RECHECK_COMMAND = "{ [ -x /opt/homebrew/bin/brew ] && printf '%s\\n' /opt/homebrew/bin/brew; } || { [ -x /usr/local/bin/brew ] && printf '%s\\n' /usr/local/bin/brew; } || { [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && printf '%s\\n' /home/linuxbrew/.linuxbrew/bin/brew; } || command -v brew 2>/dev/null"
 local BREW_INSTALL_COMMAND = "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL " .. HOMEBREW_INSTALL_URL .. ")\""
@@ -608,6 +614,13 @@ local function detect_brew_binary(exec_runner, detect_command)
         local binary = trim(result.stdout)
         if binary ~= "" then
             return binary
+        end
+    end
+
+    for _, candidate in ipairs(BREW_BINARY_CANDIDATES) do
+        local candidate_result = exec_runner(build_command(candidate, { "--version" }))
+        if candidate_result ~= nil and candidate_result.success then
+            return candidate
         end
     end
 

@@ -7,5 +7,6 @@ return {
   },
   expect = {
     success = true,
+    events = { "searched" },
   }
 }

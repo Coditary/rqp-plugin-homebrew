@@ -7,5 +7,8 @@ return {
   },
   expect = {
     success = true,
+    events = { "informed" },
+    resultCount = 1,
+    resultName = "wget",
   }
 }
